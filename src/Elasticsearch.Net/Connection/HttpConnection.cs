@@ -158,29 +158,29 @@ namespace Elasticsearch.Net.Connection
 				var data = requestData.Data;
 				if (data != null)
 				{
-					using (var r = await request.GetRequestStreamAsync())
+					using (var r = await request.GetRequestStreamAsync().ConfigureAwait(false))
 					{
 						if (requestData.HttpCompression)
 							using (var zipStream = new GZipStream(r, CompressionMode.Compress))
-								await requestData.WriteAsync(zipStream);
+								await requestData.WriteAsync(zipStream).ConfigureAwait(false);
 						else
-							await requestData.WriteAsync(r);
+							await requestData.WriteAsync(r).ConfigureAwait(false);
 					}
 				}
 				//http://msdn.microsoft.com/en-us/library/system.net.httpwebresponse.getresponsestream.aspx
 				//Either the stream or the response object needs to be closed but not both although it won't
 				//throw any errors if both are closed atleast one of them has to be Closed.
 				//Since we expose the stream we let closing the stream determining when to close the connection
-				var webResponse = await request.GetResponseAsync();
+				var webResponse = await request.GetResponseAsync().ConfigureAwait(false);
 				var response = (HttpWebResponse)webResponse;
 				var responseStream = response.GetResponseStream();
-				var cs = await requestData.CreateResponseAsync<TReturn>((int)response.StatusCode, responseStream);
+				var cs = await requestData.CreateResponseAsync<TReturn>((int)response.StatusCode, responseStream).ConfigureAwait(false);
 				return cs;
 			}
 			catch (WebException exception)
 			{
 				var response = (HttpWebResponse)exception.Response;
-				return await requestData.CreateResponseAsync<TReturn>((int)response.StatusCode, response.GetResponseStream(), exception);
+				return await requestData.CreateResponseAsync<TReturn>((int)response.StatusCode, response.GetResponseStream(), exception).ConfigureAwait(false);
 			}
 			catch (Exception exception)
 			{

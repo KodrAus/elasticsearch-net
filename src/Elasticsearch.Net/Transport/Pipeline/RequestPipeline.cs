@@ -133,7 +133,7 @@ namespace Elasticsearch.Net.Connection
 		public async Task FirstPoolUsageAsync(SemaphoreSlim semaphore)
 		{
 			if (!this.FirstPoolUsageNeedsSniffing) return;
-			var success = await semaphore.WaitAsync(this._settings.Timeout, this._cancellationToken);
+			var success = await semaphore.WaitAsync(this._settings.Timeout, this._cancellationToken).ConfigureAwait(false);
 			if (!success)
 				throw new ElasticsearchException(PipelineFailure.CouldNotStartSniffOnStartup, (Exception)null);
 
@@ -142,7 +142,7 @@ namespace Elasticsearch.Net.Connection
 			{
 				using (this.Audit(AuditEvent.SniffOnStartup))
 				{
-					await this.SniffAsync();
+					await this.SniffAsync().ConfigureAwait(false);
 					this._connectionPool.SniffedOnStartup = true;
 				}
 			}
@@ -167,7 +167,7 @@ namespace Elasticsearch.Net.Connection
 			if (!StaleClusterState) return;
 			using (this.Audit(AuditEvent.SniffOnStaleCluster))
 			{
-				await this.SniffAsync();
+				await this.SniffAsync().ConfigureAwait(false);
 				this._connectionPool.SniffedOnStartup = true;
 			}
 		}
@@ -234,12 +234,12 @@ namespace Elasticsearch.Net.Connection
 				try
 				{
 					var pingData = CreatePingRequestData(node, audit);
-					await this._connection.RequestAsync<VoidResponse>(pingData);
+					await this._connection.RequestAsync<VoidResponse>(pingData).ConfigureAwait(false);
 				}
 				catch
 				{
 					audit.Event = AuditEvent.PingFailure;
-					if (this.SniffsOnConnectionFailure) await this.SniffAsync();
+					if (this.SniffsOnConnectionFailure) await this.SniffAsync().ConfigureAwait(false);
 					throw;
 				}
 			}
@@ -296,7 +296,7 @@ namespace Elasticsearch.Net.Connection
 					try
 					{
 						var requestData = new RequestData(HttpMethod.GET, path, null, this._settings, this._memoryStreamFactory) { Node = node };
-						var response = await this._connection.RequestAsync<SniffResponse>(requestData);
+						var response = await this._connection.RequestAsync<SniffResponse>(requestData).ConfigureAwait(false);
 						this._connectionPool.Reseed(response.Body.ToNodes(this._connectionPool.UsingSsl));
 						this.Refresh = true;
 						return;
@@ -354,7 +354,7 @@ namespace Elasticsearch.Net.Connection
 				ElasticsearchResponse<TReturn> response = null;
 				try
 				{
-					response = await this._connection.RequestAsync<TReturn>(requestData);
+					response = await this._connection.RequestAsync<TReturn>(requestData).ConfigureAwait(false);
 					response.AuditTrail = this.AuditTrail;
 					if (!response.SuccessOrKnownError)
 						audit.Event = AuditEvent.BadResponse;
@@ -364,7 +364,7 @@ namespace Elasticsearch.Net.Connection
 				{
 					(response as ElasticsearchResponse<Stream>)?.Body?.Dispose();
 					audit.Event = AuditEvent.BadResponse;
-					if (this.SniffsOnConnectionFailure) await this.SniffAsync();
+					if (this.SniffsOnConnectionFailure) await this.SniffAsync().ConfigureAwait(false);
 					throw new ElasticsearchException(PipelineFailure.BadResponse, e);
 				}
 			}

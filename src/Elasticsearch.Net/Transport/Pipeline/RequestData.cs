@@ -123,14 +123,14 @@ namespace Elasticsearch.Net.Connection
 			if (NeedsToEagerReadStream<TReturn>())
 			{
 				var inMemoryStream = this._memoryStreamFactory.Create();
-				await responseStream.CopyToAsync(inMemoryStream, BufferSize, this.CancellationToken);
+				await responseStream.CopyToAsync(inMemoryStream, BufferSize, this.CancellationToken).ConfigureAwait(false);
 				bytes = this.SwapStreams(ref responseStream, ref inMemoryStream);
 			}
 
 			if (!SetSpecialTypes(responseStream, cs, bytes))
 			{
 				if (this.CustomConverter != null) cs.Body = this.CustomConverter(cs, responseStream) as TReturn;
-				else cs.Body = await this._settings.Serializer.DeserializeAsync<TReturn>(responseStream, this.CancellationToken);
+				else cs.Body = await this._settings.Serializer.DeserializeAsync<TReturn>(responseStream, this.CancellationToken).ConfigureAwait(false);
 			}
 
 			return FinalizeReponse(cs);

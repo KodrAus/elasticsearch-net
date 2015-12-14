@@ -116,7 +116,7 @@ namespace Elasticsearch.Net.Connection
 					foreach (var o in _enumerableOfObject)
 					{
 						settings.Serializer.Serialize(o, stream, indent);
-						await stream.WriteAsync(new byte[] { (byte)'\n' }, 0, 1, cancellationToken);
+						await stream.WriteAsync(new byte[] { (byte)'\n' }, 0, 1, cancellationToken).ConfigureAwait(false);
 					}
 					break;
 				case Serializable: 
@@ -132,7 +132,7 @@ namespace Elasticsearch.Net.Connection
 			if (ms != null)
 			{
 				ms.Position = 0;
-				await ms.CopyToAsync(writableStream, 8096, cancellationToken);
+				await ms.CopyToAsync(writableStream, 8096, cancellationToken).ConfigureAwait(false);
 			}
 			if (this.Type != 0)
 				this.WrittenBytes = ms?.ToArray();

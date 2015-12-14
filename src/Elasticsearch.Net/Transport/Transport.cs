@@ -106,7 +106,7 @@ namespace Elasticsearch.Net.Connection
 		{
 			using (var pipeline = this.PipelineProvider.Create(this.Settings, this.DateTimeProvider, this.MemoryStreamFactory, requestParameters))
 			{
-				await pipeline.FirstPoolUsageAsync(this._semaphore);
+				await pipeline.FirstPoolUsageAsync(this._semaphore).ConfigureAwait(false);
 
 				var requestData = new RequestData(method, path, data, this.Settings, requestParameters, this.MemoryStreamFactory);
 				ElasticsearchResponse<TReturn> response = null;
@@ -117,9 +117,9 @@ namespace Elasticsearch.Net.Connection
 					requestData.Node = node;
 					try
 					{
-						await pipeline.SniffOnStaleClusterAsync();
-						await pipeline.PingAsync(node);
-						response = await pipeline.CallElasticsearchAsync<TReturn>(requestData);
+						await pipeline.SniffOnStaleClusterAsync().ConfigureAwait(false);
+						await pipeline.PingAsync(node).ConfigureAwait(false);
+						response = await pipeline.CallElasticsearchAsync<TReturn>(requestData).ConfigureAwait(false);
 					}
 					catch (ElasticsearchException exception) when (!exception.Recoverable)
 					{
